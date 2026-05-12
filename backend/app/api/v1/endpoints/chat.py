@@ -38,6 +38,7 @@ async def query_files(request: ChatRequest):
             "sources": sources
         }
     except Exception as e:
+        print(f"Chat Query Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history")

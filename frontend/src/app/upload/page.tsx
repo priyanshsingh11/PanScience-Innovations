@@ -24,8 +24,8 @@ export default function UploadPage() {
     onDrop,
     accept: {
       'application/pdf': ['.pdf'],
-      'audio/*': ['.mp3', '.wav', '.m4a'],
-      'video/*': ['.mp4', '.mov']
+      'audio/*': ['.mp3', '.wav', '.m4a', '.ogg'],
+      'video/*': ['.mp4', '.mov', '.webm']
     },
     multiple: false
   });

@@ -10,11 +10,12 @@ from app.core.config import settings
 
 class RAGEngine:
     def __init__(self):
+        print(f"Initializing RAG Engine with model: {settings.MODEL_NAME}")
         self.embeddings = HuggingFaceEmbeddings(model_name=settings.EMBEDDING_MODEL)
         self.llm = ChatGroq(
             groq_api_key=settings.GROQ_API_KEY,
             model_name=settings.MODEL_NAME,
-            streaming=True
+            streaming=False
         )
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
@@ -26,13 +27,24 @@ class RAGEngine:
         """
         Creates a FAISS index for a specific file.
         """
-        texts = [s["text"] for s in segments]
+        if not segments:
+            raise ValueError("No text segments found to index.")
+
+        texts = [s["text"] for s in segments if s.get("text")]
+        if not texts:
+            raise ValueError("No valid text content found in segments.")
+
         metadatas = [{"start_time": s.get("start_time"), "end_time": s.get("end_time"), "source": s.get("source"), "page": s.get("page_number")} for s in segments]
         
         # Split texts if they are too large
         docs = self.text_splitter.create_documents(texts, metadatas=metadatas)
         
         vectorstore = FAISS.from_documents(docs, self.embeddings)
+        
+        # Ensure base directory exists
+        if not os.path.exists(self.vector_db_path):
+            os.makedirs(self.vector_db_path, exist_ok=True)
+            
         index_path = os.path.join(self.vector_db_path, f"{file_id}")
         vectorstore.save_local(index_path)
         return index_path

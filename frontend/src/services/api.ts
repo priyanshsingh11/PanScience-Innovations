@@ -19,7 +19,7 @@ export const fileService = {
     return response.data;
   },
   list: async (userId: string = 'test_user') => {
-    const response = await api.get('/files', { params: { user_id: userId } });
+    const response = await api.get('/files/', { params: { user_id: userId } });
     return response.data;
   },
 };
