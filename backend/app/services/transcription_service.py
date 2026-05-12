@@ -30,13 +30,30 @@ class TranscriptionService:
             segments = []
             if hasattr(transcript, 'segments') and transcript.segments:
                 print(f"DEBUG: Found {len(transcript.segments)} segments")
-                for segment in transcript.segments:
-                    segments.append({
-                        "text": segment['text'] if isinstance(segment, dict) else segment.text,
-                        "start_time": segment['start'] if isinstance(segment, dict) else segment.start,
-                        "end_time": segment['end'] if isinstance(segment, dict) else segment.end,
-                        "source": os.path.basename(file_path)
-                    })
+                for i, segment in enumerate(transcript.segments):
+                    try:
+                        text = segment['text'] if isinstance(segment, dict) else segment.text
+                        start = segment['start'] if isinstance(segment, dict) else segment.start
+                        end = segment['end'] if isinstance(segment, dict) else segment.end
+                        
+                        segments.append({
+                            "text": text,
+                            "start_time": start,
+                            "end_time": end,
+                            "source": os.path.basename(file_path)
+                        })
+                    except Exception as loop_e:
+                        print(f"DEBUG: Error processing segment {i}: {str(loop_e)}")
+                        # Try a very safe fallback for this segment
+                        try:
+                            segments.append({
+                                "text": str(segment),
+                                "start_time": 0,
+                                "end_time": 0,
+                                "source": os.path.basename(file_path)
+                            })
+                        except:
+                            pass
             else:
                 # Fallback if segments aren't returned
                 segments.append({
