@@ -12,10 +12,7 @@ app = FastAPI(
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://pan-science-innovations.vercel.app",
-    ],
+    allow_origins=["*"], # Allow all origins for production or add your Vercel URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
