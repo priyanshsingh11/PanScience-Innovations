@@ -33,6 +33,26 @@ async def query_files(request: ChatRequest):
                 "metadata": doc.metadata
             })
             
+        # Store user message in database
+        try:
+            supabase.table("chat_history").insert({
+                "file_id": request.file_ids[0],
+                "user_id": "test_user",
+                "role": "user",
+                "content": request.message
+            }).execute()
+            
+            # Store assistant message in database
+            supabase.table("chat_history").insert({
+                "file_id": request.file_ids[0],
+                "user_id": "test_user",
+                "role": "assistant",
+                "content": answer
+            }).execute()
+        except Exception as db_err:
+            print(f"Database Error (History): {str(db_err)}")
+            # Don't fail the request if history saving fails, but log it
+            
         return {
             "answer": answer,
             "sources": sources
@@ -42,6 +62,13 @@ async def query_files(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history")
-async def get_chat_history(file_id: str):
-    response = supabase.table("chat_history").select("*").eq("file_id", file_id).execute()
+async def get_chat_history(user_id: str = "test_user", file_id: Optional[str] = None):
+    query = supabase.table("chat_history").select("*, uploaded_files(name)")
+    
+    if user_id:
+        query = query.eq("user_id", user_id)
+    if file_id:
+        query = query.eq("file_id", file_id)
+        
+    response = query.order("created_at", desc=True).execute()
     return response.data
