@@ -76,12 +76,18 @@ async def upload_file(
             content = await file.read()
             buffer.write(content)
             
+        # Generate public URL
+        # Note: We need to use the actual project ID from the settings
+        # The pattern is usually https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
+        public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/multimedia/{file_id}.{file_extension}"
+
         # Initial database entry
         file_data = {
             "id": file_id,
             "name": file.filename,
             "type": file_extension,
             "user_id": user_id,
+            "url": public_url,
             "status": "processing"
         }
         supabase.table("uploaded_files").insert(file_data).execute()

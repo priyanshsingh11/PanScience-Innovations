@@ -117,7 +117,7 @@ export default function ChatPage() {
           ) : (
             <ReactPlayer
               ref={playerRef}
-              url={`https://zzxyokvsspysiuvavep.supabase.co/storage/v1/object/public/multimedia/${file?.id}.${file?.type}`}
+              url={file?.url}
               controls
               width="100%"
               height="100%"
