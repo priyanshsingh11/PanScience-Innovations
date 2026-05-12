@@ -14,7 +14,7 @@ export default function Sidebar() {
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: Upload, label: "Upload", href: "/upload" },
-    { icon: MessageSquare, label: "Recent Chats", href: "#" },
+    { icon: MessageSquare, label: "Recent Chats", href: "/recent-chats" },
     { icon: Settings, label: "Settings", href: "#" },
   ];
 

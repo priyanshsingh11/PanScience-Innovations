@@ -25,6 +25,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetchFile();
+    fetchChatHistory();
   }, [id]);
 
   useEffect(() => {
@@ -32,6 +33,28 @@ export default function ChatPage() {
       scrollRef.current.scrollTo(0, scrollRef.current.scrollHeight);
     }
   }, [messages]);
+
+  const fetchChatHistory = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/history?user_id=test_user&file_id=${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        // The endpoint returns all history, we filter for this specific file if needed, 
+        // but here we can just set the messages that match the file_id.
+        const fileMessages = data
+          .filter((m: any) => m.file_id === id)
+          .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          .map((m: any) => ({
+            role: m.role,
+            content: m.content,
+            created_at: m.created_at
+          }));
+        setMessages(fileMessages);
+      }
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+    }
+  };
 
   const fetchFile = async () => {
     try {
