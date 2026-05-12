@@ -25,6 +25,7 @@ def process_file_task(file_id: str, file_path: str, file_extension: str, filenam
             segments = pdf_service.extract_text(file_path)
         elif file_extension in ["mp3", "mp4", "wav", "m4a", "mov", "ogg", "webm"]:
             segments = transcription_service.transcribe_audio(file_path)
+            print(f"DEBUG: Transcription complete, got {len(segments)} segments")
         else:
             logger.error(f"Unsupported file type: {file_extension}")
             supabase.table("uploaded_files").update({"status": "error"}).eq("id", file_id).execute()

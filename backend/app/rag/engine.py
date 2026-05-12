@@ -24,6 +24,7 @@ class RAGEngine:
         self.vector_db_path = settings.VECTOR_DB_DIR
 
     def create_index(self, segments: List[Dict], file_id: str):
+        print(f"DEBUG: Creating index for file {file_id} with {len(segments)} segments")
         """
         Creates a FAISS index for a specific file.
         """
