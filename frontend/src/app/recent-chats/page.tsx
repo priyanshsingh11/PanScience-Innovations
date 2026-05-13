@@ -5,6 +5,7 @@ import { MessageSquare, Clock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { chatService } from "@/services/api";
 
 interface ChatMessage {
   id: string;
@@ -24,11 +25,8 @@ export default function RecentChatsPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/history?user_id=test_user`);
-        if (response.ok) {
-          const data = await response.json();
-          setChats(data);
-        }
+        const data = await chatService.getHistory();
+        setChats(data);
       } catch (error) {
         console.error("Failed to fetch chat history:", error);
       } finally {

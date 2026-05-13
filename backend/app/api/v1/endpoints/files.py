@@ -1,9 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Depends
 from app.services.pdf_service import pdf_service
 from app.services.transcription_service import transcription_service
 from app.rag.engine import rag_engine
 from app.database.supabase import supabase
 from app.core.config import settings
+from app.core.auth import get_current_user
 import os
 import uuid
 import logging
@@ -30,7 +31,7 @@ def process_file_task(file_id: str, file_path: str, file_extension: str, filenam
             logger.error(f"Unsupported file type: {file_extension}")
             supabase.table("uploaded_files").update({"status": "error"}).eq("id", file_id).execute()
             return
-
+ 
         # Index segments in FAISS
         logger.info(f"Indexing {len(segments)} segments for file: {file_id}")
         rag_engine.create_index(segments, file_id)
@@ -59,7 +60,7 @@ def process_file_task(file_id: str, file_path: str, file_extension: str, filenam
 async def upload_file(
     background_tasks: BackgroundTasks, 
     file: UploadFile = File(...), 
-    user_id: str = Form("test_user")
+    user_id: str = Depends(get_current_user)
 ):
     """
     Uploads a file and enqueues processing.
@@ -102,6 +103,6 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/")
-async def list_files(user_id: str = "test_user"):
+async def list_files(user_id: str = Depends(get_current_user)):
     response = supabase.table("uploaded_files").select("*").eq("user_id", user_id).execute()
     return response.data

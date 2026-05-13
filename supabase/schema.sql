@@ -38,6 +38,47 @@ CREATE TABLE IF NOT EXISTS summaries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable RLS (Optional but recommended)
--- ALTER TABLE uploaded_files ENABLE ROW LEVEL SECURITY;
--- ... add policies ...
+-- Disable Row Level Security (RLS) for testing
+ALTER TABLE uploaded_files DISABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE media_timestamps DISABLE ROW LEVEL SECURITY;
+ALTER TABLE summaries DISABLE ROW LEVEL SECURITY;
+
+-- Note: Policies are disabled when RLS is disabled, 
+-- but we'll leave them commented out in the schema file for future reference.
+/*
+CREATE POLICY "Users can view their own files" ON uploaded_files
+    FOR SELECT USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can insert their own files" ON uploaded_files
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can update their own files" ON uploaded_files
+    FOR UPDATE USING (auth.uid()::text = user_id);
+
+-- Policies for chat_history
+CREATE POLICY "Users can view their own chat history" ON chat_history
+    FOR SELECT USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can insert their own chat history" ON chat_history
+    FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+
+-- Policies for media_timestamps (linked via file_id)
+CREATE POLICY "Users can view timestamps for their own files" ON media_timestamps
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM uploaded_files 
+            WHERE uploaded_files.id = media_timestamps.file_id 
+            AND uploaded_files.user_id = auth.uid()::text
+        )
+    );
+
+-- Policies for summaries (linked via file_id)
+CREATE POLICY "Users can view summaries for their own files" ON summaries
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM uploaded_files 
+            WHERE uploaded_files.id = summaries.file_id 
+            AND uploaded_files.user_id = auth.uid()::text
+        )
+    );

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from app.rag.engine import rag_engine
 from app.database.supabase import supabase
+from app.core.auth import get_current_user
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -12,7 +13,7 @@ class ChatRequest(BaseModel):
     chat_history: Optional[List[dict]] = []
 
 @router.post("/query")
-async def query_files(request: ChatRequest):
+async def query_files(request: ChatRequest, user_id: str = Depends(get_current_user)):
     """
     Query the uploaded files using RAG.
     """
@@ -37,7 +38,7 @@ async def query_files(request: ChatRequest):
         try:
             supabase.table("chat_history").insert({
                 "file_id": request.file_ids[0],
-                "user_id": "test_user",
+                "user_id": user_id,
                 "role": "user",
                 "content": request.message
             }).execute()
@@ -45,7 +46,7 @@ async def query_files(request: ChatRequest):
             # Store assistant message in database
             supabase.table("chat_history").insert({
                 "file_id": request.file_ids[0],
-                "user_id": "test_user",
+                "user_id": user_id,
                 "role": "assistant",
                 "content": answer
             }).execute()
@@ -62,7 +63,7 @@ async def query_files(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history")
-async def get_chat_history(user_id: str = "test_user", file_id: Optional[str] = None):
+async def get_chat_history(user_id: str = Depends(get_current_user), file_id: Optional[str] = None):
     query = supabase.table("chat_history").select("*, uploaded_files(name)")
     
     if user_id:
